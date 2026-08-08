@@ -16,7 +16,6 @@ function Home() {
     fetch7DayForecast(city, unit);
   }, [city, unit]);
 
-  // 1. Fetch Current Weather
   const fetchWeather = async (selectedCity, units) => {
     if (!selectedCity) return;
     try {
@@ -29,25 +28,20 @@ function Home() {
     }
   };
 
-  // 2. Fetch & Format 7-Day Forecast
   const fetch7DayForecast = async (selectedCity, units) => {
     if (!selectedCity) return;
     try {
-      // First get coordinates of the city
       const geoRes = await axios.get(
         `https://api.openweathermap.org/data/2.5/weather?q=${selectedCity}&appid=${apiKey}`
       );
       const { lat, lon } = geoRes.data.coord;
 
-      // Try fetching 7-day forecast using One Call API
       try {
         const oneCallRes = await axios.get(
           `https://api.openweathermap.org/data/3.0/onecall?lat=${lat}&lon=${lon}&exclude=hourly,minutely&appid=${apiKey}&units=${units}`
         );
-        // Take 7 days from daily array
         setForecast(oneCallRes.data.daily.slice(0, 7));
       } catch (e) {
-        // Fallback for free 5-day API: Fill remaining 2 days automatically
         const forecastRes = await axios.get(
           `https://api.openweathermap.org/data/2.5/forecast?q=${selectedCity}&appid=${apiKey}&units=${units}`
         );
@@ -64,7 +58,6 @@ function Home() {
 
         let daysArray = Object.values(dailyMap);
 
-        // Fill up to 7 days if free tier returns less
         while (daysArray.length < 7) {
           const lastDay = daysArray[daysArray.length - 1];
           const nextDate = new Date(lastDay.dt * 1000 + 86400000);
@@ -92,27 +85,39 @@ function Home() {
     localStorage.setItem("unit", newUnit);
   };
 
-  // Weather Background Selector
+  // DYNAMIC BACKGROUND IMAGES (Clouds, Rain, Clear/Sunny/Sun, Snow)
   const getBackgroundImage = () => {
     if (!weather || !weather.weather || !weather.weather[0]) {
-      return "https://images.unsplash.com/photo-1601297183305-6df142704ea2?q=80&w=1920";
+      return "https://images.unsplash.com/photo-1601297183305-6df142704ea2?auto=format&fit=crop&w=1920&q=80"; // Default Sunny/Clear
     }
 
-    const main = weather.weather[0].main.toLowerCase();
+    const condition = weather.weather[0].main.toLowerCase();
+    const description = weather.weather[0].description.toLowerCase();
 
-    if (main.includes("rain") || main.includes("drizzle") || main.includes("thunderstorm")) {
-      return "https://images.unsplash.com/photo-1519692933481-e162a57d6721?q=80&w=1920";
+    // 1. Rain
+    if (condition.includes("rain") || condition.includes("drizzle") || condition.includes("thunderstorm")) {
+      return "https://images.unsplash.com/photo-1519692933481-e162a57d6721?auto=format&fit=crop&w=1920&q=80";
     }
-    if (main.includes("cloud")) {
-      return "https://images.unsplash.com/photo-1534088568595-a066f410bcda?q=80&w=1920";
+
+    // 2. Clouds
+    if (condition.includes("cloud")) {
+      return "https://images.unsplash.com/photo-1534088568595-a066f410bcda?auto=format&fit=crop&w=1920&q=80";
     }
-    if (main.includes("snow")) {
-      return "https://images.unsplash.com/photo-1517299321529-b9d53347517c?q=80&w=1920";
+
+    // 3. Snow
+    if (condition.includes("snow")) {
+      return "https://images.unsplash.com/photo-1517299321529-b9d53347517c?auto=format&fit=crop&w=1920&q=80";
     }
-    return "https://images.unsplash.com/photo-1601297183305-6df142704ea2?q=80&w=1920";
+
+    // 4. Clear / Sun / Sunny
+    if (condition.includes("clear") || condition.includes("sun") || description.includes("sun")) {
+      return "https://images.unsplash.com/photo-1601297183305-6df142704ea2?auto=format&fit=crop&w=1920&q=80";
+    }
+
+    // Default Fallback
+    return "https://images.unsplash.com/photo-1601297183305-6df142704ea2?auto=format&fit=crop&w=1920&q=80";
   };
 
-  // Date Format Helpers
   const formatDate = (timestampOrStr) => {
     const date = typeof timestampOrStr === "number" 
       ? new Date(timestampOrStr * 1000) 
@@ -131,7 +136,7 @@ function Home() {
     <div
       style={{
         minHeight: "100vh",
-        width: "100%",
+        width: "100vw",
         backgroundImage: `url(${getBackgroundImage()})`,
         backgroundSize: "cover",
         backgroundPosition: "center",
@@ -142,17 +147,19 @@ function Home() {
         alignItems: "center",
         justifyContent: "center",
         fontFamily: "sans-serif",
-        padding: "20px"
+        padding: "20px",
+        boxSizing: "border-box"
       }}
     >
+      {/* ORIGINAL DASHBOARD CARD */}
       <div
         style={{
-          backgroundColor: "rgba(255, 255, 255, 0.92)",
+          backgroundColor: "rgba(255, 255, 255, 0.90)",
           color: "#000000",
           padding: "30px",
           borderRadius: "16px",
           textAlign: "center",
-          maxWidth: "680px",
+          maxWidth: "600px",
           width: "100%",
           boxShadow: "0 10px 30px rgba(0, 0, 0, 0.3)",
           backdropFilter: "blur(6px)"
@@ -162,7 +169,6 @@ function Home() {
           Weather Dashboard
         </h1>
 
-        {/* City Selection */}
         <div style={{ marginBottom: "15px" }}>
           <select
             value={city}
@@ -184,7 +190,6 @@ function Home() {
           </select>
         </div>
 
-        {/* Unit Toggle */}
         <div style={{ marginBottom: "25px" }}>
           <button
             onClick={handleUnitChange}
@@ -204,28 +209,63 @@ function Home() {
           </button>
         </div>
 
-        {/* Current Weather Box */}
         {weather && (
           <div style={{ borderTop: "1px solid #ddd", paddingTop: "20px" }}>
             <h2 style={{ fontSize: "28px", margin: "0 0 10px 0", color: "#000", fontWeight: "bold" }}>
               {weather.name}
             </h2>
-            <p style={{ fontSize: "18px", margin: "8px 0", fontWeight: "500" }}>
-              Temperature {weather.main.temp}°{unit === 'metric' ? "C" : "F"}
+            <p style={{ fontSize: "18px", margin: "8px 0", color: "#000" }}>
+              Temperature {weather.main.temp}{unit === 'metric' ? "C" : "F"}
             </p>
-            <p style={{ fontSize: "16px", margin: "8px 0", fontWeight: "500" }}>
-              Humidity {weather.main.humidity}%
+            <p style={{ fontSize: "16px", margin: "8px 0", color: "#000" }}>
+              Humidity {weather.main.humidity}
             </p>
-            <p style={{ fontSize: "16px", margin: "8px 0", textTransform: "capitalize", fontWeight: "500" }}>
+            <p style={{ fontSize: "16px", margin: "8px 0", textTransform: "capitalize", color: "#000" }}>
               Condition {weather.weather[0].description}
             </p>
+
+            {/* DETAILED EXTRA METRICS */}
+            <div
+              style={{
+                borderTop: "1px dashed #ccc",
+                marginTop: "20px",
+                paddingTop: "15px",
+                display: "flex",
+                justifyContent: "space-around",
+                alignItems: "center",
+                textAlign: "left",
+                fontSize: "14px",
+                color: "#334155"
+              }}
+            >
+              <div>
+                <p style={{ margin: "6px 0", fontSize: "16px", fontWeight: "600", color: "#1e3a8a" }}>
+                  Feels like {Math.round(weather.main.feels_like)}°
+                </p>
+                <p style={{ margin: "6px 0", color: "#0284c7", fontWeight: "bold" }}>
+                  ↑ {Math.round(weather.main.temp_max)}° &nbsp; ↓ {Math.round(weather.main.temp_min)}°
+                </p>
+              </div>
+
+              <div>
+                <p style={{ margin: "4px 0" }}>
+                  💧 <strong>Humidity:</strong> {weather.main.humidity}%
+                </p>
+                <p style={{ margin: "4px 0" }}>
+                  💨 <strong>Wind:</strong> {Math.round(weather.wind.speed)} {unit === "metric" ? "kph" : "mph"}
+                </p>
+                <p style={{ margin: "4px 0" }}>
+                  🧭 <strong>Pressure:</strong> {weather.main.pressure}hPa
+                </p>
+              </div>
+            </div>
           </div>
         )}
 
-        {/* 7-DAY FORECAST SECTION */}
+        {/* 7-DAY FORECAST */}
         {forecast.length > 0 && (
           <div style={{ borderTop: "1px solid #ccc", marginTop: "25px", paddingTop: "15px" }}>
-            <h3 style={{ fontSize: "14px", textTransform: "uppercase", letterSpacing: "1px", color: "#555", textAlign: "left", marginBottom: "15px" }}>
+            <h3 style={{ fontSize: "14px", textTransform: "uppercase", letterSpacing: "1px", color: "#444", textAlign: "left", marginBottom: "15px", fontWeight: "bold" }}>
               7-DAY FORECAST
             </h3>
 
@@ -245,22 +285,22 @@ function Home() {
                 const tempMin = Math.round(item.temp?.min ?? item.main?.temp_min ?? 22);
 
                 return (
-                  <div key={index} style={{ textAlign: "center", minWidth: "70px", flex: 1 }}>
-                    <div style={{ fontSize: "12px", color: "#555", fontWeight: "500" }}>
+                  <div key={index} style={{ textAlign: "center", minWidth: "65px", flex: 1 }}>
+                    <div style={{ fontSize: "12px", color: "#555" }}>
                       {formatDate(dateKey)}
                     </div>
 
                     <img
                       src={`https://openweathermap.org/img/wn/${iconCode}@2x.png`}
                       alt="weather icon"
-                      style={{ width: "42px", height: "42px", margin: "2px 0" }}
+                      style={{ width: "40px", height: "40px" }}
                     />
 
-                    <div style={{ fontSize: "14px", color: "#111", fontWeight: "bold" }}>
+                    <div style={{ fontSize: "13px", color: "#000", fontWeight: "bold" }}>
                       {formatDay(dateKey)}
                     </div>
 
-                    <div style={{ fontSize: "14px", fontWeight: "bold", color: "#000", marginTop: "4px" }}>
+                    <div style={{ fontSize: "13px", fontWeight: "bold", color: "#000", marginTop: "2px" }}>
                       {tempMax}° / {tempMin}°
                     </div>
                   </div>
