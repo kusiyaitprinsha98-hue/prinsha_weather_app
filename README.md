@@ -1,16 +1,37 @@
-# React + Vite
+# Prinsha Weather App
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+A responsive, multi-view weather monitoring web application built with React, Vite, and Axios for CSE 230 Practical Assignment.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## 🌟 Key Features
 
-## React Compiler
+* **Multi-View Navigation:** Client-side view switching (`Home`, `About`, `Contact`) using React state without full page reloads.
+* **Live Weather Metrics:** Displays real-time temperature, humidity, and weather conditions for popular cities (Kathmandu, Pokhara, London, Tokyo, New York, etc.).
+* **Dynamic Background Engine:** Contextual Unsplash background imagery that dynamically adapts to real-time weather conditions (Rain, Clouds, Snow, Clear).
+* **7-Day Forecast:** Daily extended forecast breakdown complete with OpenWeatherMap weather condition icons and high/low temperature ranges.
+* **Persistent Temperature Scale:** Preference toggle between Celsius (`metric`) and Fahrenheit (`imperial`) stored locally using `localStorage`.
+* **WCAG 2.1 Accessible Contact Form:** Built-in form with accessible label-to-input pairings.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+---
 
-## Expanding the Oxlint configuration
+## 🛠️ Tech Stack & Technologies
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+* **Frontend:** React 18, JSX
+* **Build Tool:** Vite
+* **HTTP Client:** Axios
+* **API:** OpenWeatherMap REST API
+* **Storage:** HTML5 Web Storage API (`localStorage`)
+* **Styling:** Dynamic Inline React Styles
+
+---
+
+## 🚀 Local Development Setup
+
+To run this application locally:
+
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/kusiyaitprinsha98-hue/prinsha_weather_app.git
+   cd prinsha_weather_app
+   
